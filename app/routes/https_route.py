@@ -5,10 +5,12 @@ https_bp = Blueprint('https', __name__)
 
 @https_bp.route('/https', methods=['GET', 'POST'])
 def https_trigger():
-    logging.info(f"Headers: {request.headers}")
-    logging.info(f"Query Params: {request.args}")
-    logging.info(f"Request Method: {request.method}")
-    logging.info(f"Body: {request.get_json()}")
+    data = {
+        "headers": dict(request.headers),
+        "query_params": request.args,
+        "request_method": request.method
+    }
+    logging.info(f"HTTPS Request: {data}")
     
     return jsonify({
         "status": "success",
