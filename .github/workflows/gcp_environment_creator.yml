@@ -1,0 +1,93 @@
+name: Setup github Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      gcp_project_id:
+        description: "The GCP Project ID"
+        required: true
+      github_environment_name:
+        description: "The name of the GitHub environment to create"
+        required: true
+
+
+env:
+  SERVICE_ACCOUNT_NAME: ${{ github.event.inputs.github_environment_name }}-deploy
+  REPO_ID: ${{ github.event.inputs.gcp_project_id }}-repo
+  
+
+jobs:
+  setup-gcp-env:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.SERVICE_ACCOUNT_MANAGER_KEY }}
+          project_id: ${{ github.event.inputs.gcp_project_id }}
+
+      - name: Install Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.SERVICE_ACCOUNT_MANAGER_KEY }}
+
+      - name: Enable required Google Cloud APIs
+        run: |
+          gcloud services enable cloudresourcemanager.googleapis.com
+          gcloud services enable iam.googleapis.com
+          gcloud services enable serviceusage.googleapis.com
+          gcloud services enable artifactregistry.googleapis.com
+          gcloud services enable run.googleapis.com
+          gcloud services enable cloudscheduler.googleapis.com
+
+      - name: Create Service Account
+        run: |
+          gcloud iam service-accounts create ${{ env.SERVICE_ACCOUNT_NAME }} \
+            --project=${{ github.event.inputs.gcp_project_id }} \
+            --display-name="Service account for Cloud Run and Artifact Registry deployment"
+
+      - name: Assign Roles to Service Account
+        run: |
+          SERVICE_ACCOUNT_EMAIL="${{ env.SERVICE_ACCOUNT_NAME }}@${{ github.event.inputs.gcp_project_id }}.iam.gserviceaccount.com"
+          
+          gcloud projects add-iam-policy-binding ${{ github.event.inputs.gcp_project_id }} \
+            --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+            --role="roles/run.admin"
+          
+          gcloud projects add-iam-policy-binding ${{ github.event.inputs.gcp_project_id }} \
+            --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+            --role="roles/artifactregistry.admin"
+          
+          gcloud projects add-iam-policy-binding ${{ github.event.inputs.gcp_project_id }} \
+            --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+            --role="roles/iam.serviceAccountUser"
+      
+      - name: Create JSON Key for Service Account
+        run: |
+          gcloud iam service-accounts keys create ${HOME}/${{ env.SERVICE_ACCOUNT_NAME }}.json \
+            --iam-account=${{ env.SERVICE_ACCOUNT_NAME }}@${{ github.event.inputs.gcp_project_id }}.iam.gserviceaccount.com
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install gh -y
+        
+      - name: Create GitHub Environment and setup secrets
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          gh api --method PUT /repos/${{ github.repository }}/environments/${{ github.event.inputs.github_environment_name }}
+
+          gh secret set GCP_SERVICE_ACCOUNT_DEPLOYER_KEY \
+            --env ${{ github.event.inputs.github_environment_name }} \
+            < ${HOME}/${{ env.SERVICE_ACCOUNT_NAME }}.json
+
+          echo "${{ github.event.inputs.gcp_project_id }}" | gh secret set GCP_PROJECT_ID \
+            --env ${{ github.event.inputs.github_environment_name }}
+
+          echo "${{ env.REPO_ID }}" | gh secret set GCP_REPO_ID \
+            --env ${{ github.event.inputs.github_environment_name }}
