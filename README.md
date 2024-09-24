@@ -1,5 +1,14 @@
 # gcp-cloudrun-deployment
 
+## The project includes two main parts:
+### 1) Application:
+- /app - folder app.
+- Dockerfile - creates an image of the application
+- docker-compose - for local tests
+### 2) Github workflows:
+- .github/workflows/gcp_environment_creator.yml
+- .github/workflows/gcp_cloud_run_deployment.yml
+
 ### docker image usage:
 1) Create image:
 ```
@@ -9,6 +18,12 @@ docker build -t flask-logger-app .
 ```
  docker run -d -p 8080:8080 flask-logger-app
  ```
+
+### docker compose usage:
+1) Create image:
+```
+docker compose up --build -d
+```
 
 ### Cloud Scheduler usage:
 
