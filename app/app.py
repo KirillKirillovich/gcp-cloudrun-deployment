@@ -1,4 +1,5 @@
 import logging
+import os
 from flask import Flask
 from routes.https_route import https_bp
 from routes.scheduler_route import scheduler_bp
@@ -15,4 +16,5 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(host='0.0.0.0', port=8000)
+    port = int(os.getenv("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)

@@ -1,0 +1,64 @@
+name: Deploy app to Google Cloud Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "environment of project"
+        required: true
+      image:
+        description: "image name to deploy"
+        required: true
+      gcp_region:
+        description: "region of app (e.g., europe-central2)"
+        required: true
+      tag:
+        description: "version of image"
+        required: false 
+
+
+jobs:
+  build-push-gcp:
+    runs-on: ubuntu-latest
+
+    environment: ${{ github.event.inputs.environment }}
+
+    env:
+      GCP_FULL_IMAGE_NAME: ${{ github.event.inputs.gcp_region }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REPO_ID }}/${{ github.event.inputs.image }}:${{ github.event.inputs.tag || 'latest' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_DEPLOYER_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Set up Docker authentication for Google Artifact Registry
+        run: gcloud auth configure-docker ${{ github.event.inputs.gcp_region }}-docker.pkg.dev
+
+      - name: Create Artifact Registry Repository (if not exists)
+        run: |
+          gcloud artifacts repositories create ${{ secrets.GCP_REPO_ID }} \
+            --repository-format=docker \
+            --location=${{ github.event.inputs.gcp_region }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} || echo "Repository already exists."
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ env.GCP_FULL_IMAGE_NAME }} .
+
+      - name: Push Docker Image to Artifact Registry
+        run: |
+          docker push ${{ env.GCP_FULL_IMAGE_NAME }}
+
+
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud run deploy ${{ github.event.inputs.image }}-${{ github.event.inputs.environment }} \
+            --image ${{ env.GCP_FULL_IMAGE_NAME }} \
+            --region ${{ github.event.inputs.gcp_region }} \
+            --platform managed \
+            --allow-unauthenticated
