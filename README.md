@@ -86,7 +86,7 @@ gcp_environment_creator.yml
    - choose created 'projectname-serv-manager' -> <strong>actions</strong> -> <strong>manage keys</strong> -> select <strong>add key</strong> -> <strong>create neaw key</strong>(JSON)
    - open downloaded JSON key -> copy content -> past to github repo secret as SERVICE_ACCOUNT_MANAGER_KEY
 #### 5) Setup github environment for the GCP project (workflow usage)
-##### !!! IMPORTANT(YOU HAVE TO GENERATE Personal Access Token (PAT) AND ADD IT TO REPO SERCRETS LIKE 'PAT_TOKEN')<br> https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic. <br> (till expired step)
+##### !!! IMPORTANT(YOU HAVE TO GENERATE Personal Access Token (PAT) AND ADD IT TO REPO SERCRETS LIKE 'PAT_TOKEN') PAT have include 'repo' and 'workflow' permissions<br> https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic. <br> (till expired step)
    - visit github repo -> <strong>Actions</strong> -> choose <strong>Setup github environment</strong> -> <strong>Run workflow</strong>, fields:
      - <strong>The GCP Project ID</strong> - input precraeated <strong>name-of-the-project id</strong> from first step.
      - <strong>The name of the GitHub environment to create</strong> - name of the GitHub environment (for ex. project-name-staging). Some rules there:
