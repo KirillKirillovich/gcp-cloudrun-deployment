@@ -1,4 +1,4 @@
-# gcp-cloudrun-deployment
+# [gcp-cloudrun-deployment] will help you automate the process of creating and preparing your github envinroment for use with GCP project and deploying your application to Google Cloud Run using Docker and Artifact Registry.
 
 ## The project includes two main parts:
 ### 1) Application:
@@ -23,6 +23,16 @@ docker build -t flask-logger-app .
 1) Create image:
 ```
 docker compose up --build -d
+```
+
+### Application include two endpoints:
+- /https (Logs details of the HTTPS request)
+```
+app/routes/https_route.py
+```
+- /scheduler (Logs details of the scheduled job execution)
+```
+app/routes/scheduler_route.py
 ```
 
 ### Cloud Scheduler usage:
@@ -72,7 +82,7 @@ gcp_cloud_run_deployment.yml
 
 # Usage:
 ## Creating and store GCP project secrets and variables
-### If you want use a GitHub Action to create a new environment that holds all your GCP project's secrets and variables, you have to do some steps. Most of the steps should be performed once when creating a new project.
+### If you want use a GitHub Action to create a new environment that holds all your GCP project's secrets and variables, you have to do some steps. Most of the steps should be performed once when creating a new project(If you have already done the steps to presetup your project, you can start with step 5).
 ```
 gcp_environment_creator.yml
 ```
