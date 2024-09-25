@@ -1,8 +1,7 @@
 import logging
 import os
 from flask import Flask
-from routes.https_route import https_bp
-from routes.scheduler_route import scheduler_bp
+from routes import https_bp, scheduler_bp
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
 

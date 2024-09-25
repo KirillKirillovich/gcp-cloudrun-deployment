@@ -91,8 +91,8 @@ gcp_environment_creator.yml
    - Create a new project: </br> 
         - <strong>select a project</strong> -> <strong>New project</strong>
         - Project name - name-of-the-project(copy id of the project for future usage)
-        - Select the created project using the <strong>the selector in the upper left corner of the screen.</strong>
         - Lcoation - no organization
+        - Select the created project using the <strong>the selector in the upper left corner of the screen.</strong>
 #### 2) Check if Service Usage API enabled on the project, without this service we will not be albe to use service account API (one-time step)
    - press on searchbar and look for <strong>'Service usage API'</strong> -> <strong>Enable</strong> if disabled
 #### 3) Create Service Account manager to create and manage service accounts (one-time step)
